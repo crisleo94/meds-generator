@@ -1,0 +1,19 @@
+[project]
+name = "clasificador-tarjetas"
+version = "0.1.0"
+description = "Generador de tarjetas de medicamentos en formato A4 con Django y HTMX"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1.0",
+    "openpyxl>=3.1.5",
+    "reportlab>=5.0.0",
+    "pymupdf>=1.28.0",
+    "python-barcode>=0.16.0",
+    "gunicorn>=23.0.0",
+    "whitenoise>=6.8.0",
+    "pillow>=11.0.0",
+]
+
+[tool.uv]
+package = false

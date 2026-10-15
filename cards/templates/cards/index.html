@@ -1,0 +1,71 @@
+{% extends "cards/base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Hero / Upload Section -->
+    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-2xl">
+            <h2 class="text-2xl font-bold text-white tracking-tight">1. Importar archivo Excel (.xlsx)</h2>
+            <p class="text-sm text-slate-400 mt-1">
+                Sube tu catálogo o lista de medicamentos. La plataforma analizará automáticamente las columnas y te permitirá configurar el título, código de barras y opciones de impresión.
+            </p>
+        </div>
+
+        <!-- Upload Form with HTMX -->
+        <form id="upload-form"
+              hx-post="{% url 'cards:upload_excel' %}"
+              hx-target="#config-area"
+              hx-swap="innerHTML"
+              hx-indicator="#upload-spinner"
+              enctype="multipart/form-data"
+              class="mt-6">
+
+            <div class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
+                 onclick="document.getElementById('excel_file_input').click()">
+
+                <input type="file"
+                       id="excel_file_input"
+                       name="excel_file"
+                       accept=".xlsx,.xlsm"
+                       class="hidden"
+                       onchange="if(this.files.length) { document.getElementById('selected-filename').innerText = this.files[0].name; htmx.trigger('#upload-form', 'submit'); }">
+
+                <div class="flex flex-col items-center justify-center space-y-3">
+                    <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-200">
+                            Haz clic para seleccionar o arrastra aquí tu archivo <span class="text-brand font-semibold">.xlsx</span>
+                        </p>
+                        <p id="selected-filename" class="text-xs text-slate-400 mt-1">
+                            Ejemplo: PATENTE.xlsx
+                        </p>
+                    </div>
+                </div>
+
+                <!-- HTMX Loading Indicator -->
+                <div id="upload-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                    <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-brand">Leyendo columnas y analizando datos...</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Configuration Area (Swapped via HTMX) -->
+    <div id="config-area" class="transition-all"></div>
+
+    <!-- Preview Area (Swapped via HTMX) -->
+    <div id="preview-area" class="transition-all"></div>
+
+</div>
+{% endblock %}

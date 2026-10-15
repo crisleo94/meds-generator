@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    container_name: clasificador-tarjetas-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-clave-secreta-produccion-tarjetas-farmacia-2026}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      - DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+    volumes:
+      - media_data:/app/media/uploads
+
+volumes:
+  media_data:
