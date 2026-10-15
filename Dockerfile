@@ -33,5 +33,5 @@ RUN uv run python manage.py collectstatic --noinput && \
 
 EXPOSE 8000
 
-# Iniciar servidor de producción con uv run gunicorn
-CMD ["uv", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+# Iniciar servidor de producción leyendo la variable PORT (por defecto 8000)
+CMD ["sh", "-c", "uv run gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 120"]
