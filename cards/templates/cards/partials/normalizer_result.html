@@ -1,0 +1,66 @@
+<div class="bg-darkcard2/70 border border-darkborder rounded-2xl p-6 space-y-6 shadow-xl animate-fade-in mt-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-darkborder gap-4">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Normalización Completada
+            </span>
+            <h3 class="text-lg font-bold text-white mt-0.5">Catálogo Consolidado y Ordenado</h3>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-medium">
+                Total Medicamentos: <strong class="font-bold text-white">{{ total_items }}</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Preview Table -->
+    <div class="space-y-2">
+        <p class="text-xs text-slate-400">
+            Vista previa de los primeros registros normalizados:
+        </p>
+        <div class="overflow-x-auto rounded-xl border border-darkborder bg-darkbg/70">
+            <table class="w-full text-xs text-left">
+                <thead class="bg-darkcard2/80 text-slate-300 font-semibold border-b border-darkborder">
+                    <tr>
+                        <th class="px-4 py-3 text-slate-400 font-mono">#</th>
+                        <th class="px-4 py-3 font-mono">DESC (Nombre / Presentación)</th>
+                        {% if has_code %}
+                        <th class="px-4 py-3 font-mono text-center">CVEART (Código)</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-darkborder/50 text-slate-200">
+                    {% for item in sample_items %}
+                    <tr class="hover:bg-darkcard2/30">
+                        <td class="px-4 py-2.5 text-slate-500 font-mono">{{ forloop.counter }}</td>
+                        <td class="px-4 py-2.5 font-medium text-emerald-300">{{ item.0 }}</td>
+                        {% if has_code %}
+                        <td class="px-4 py-2.5 font-mono text-center text-brand">{{ item.1 }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <p class="text-xs text-slate-400">
+            El archivo resultante contiene las cabeceras estándar listas para usar directamente en la herramienta de impresión.
+        </p>
+
+        <a href="{% url 'cards:download_normalized_excel' file_id %}"
+           class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span>Descargar Excel Normalizado (.xlsx)</span>
+        </a>
+    </div>
+
+</div>

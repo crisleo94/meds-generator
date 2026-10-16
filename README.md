@@ -1,6 +1,10 @@
-# Generador de Tarjetas de Medicamentos A4 (Cenefas y Etiquetas)
+# Herramientas de Farmacia (Suite Web A4)
 
-Aplicación web desarrollada en **Django + HTMX** con tema oscuro para la importación de archivos Excel (`.xlsx`), mapeo interactivo de columnas, generación de códigos de barras vectoriales **Code 128** y exportación de tarjetas de medicamentos en formato estándar **A4** listas para impresión y corte manual.
+Aplicación web desarrollada en **Django + HTMX** con tema oscuro estructurada en 3 herramientas esenciales:
+
+1. **🖨️ Impresión de Tarjetas A4**: Generación de tarjetas para cenefa (3.5 × 1.5 cm) en formato A4 con soporte dinámico para **1 columna** (texto grande o código de barras grande) o **2 columnas** (título + código/código de barras).
+2. **📝 Ordenador de Listas (Reemplazo n8n)**: Limpieza y ordenamiento alfabético estricto en español para listas de texto desordenadas (eliminación de viñetas, comillas, guiones y espacios redundantes), con copia al portapapeles y descarga en `.txt`.
+3. **📊 Normalizador de Excel**: Consolidación y desaplanado de múltiples columnas dispersas en un Excel estructurado, ordenado y listo para impresión.
 
 Gestionado nativamente con **`uv`** y `pyproject.toml`.
 

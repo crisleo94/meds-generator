@@ -14,13 +14,32 @@
 
         <div class="flex flex-wrap gap-2 text-xs">
             <span class="px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
-                Título: <strong class="text-brand">{{ title_col }}</strong>
+                Modo: <strong class="text-brand">{{ num_cols }} Columna{% if num_cols > 1 %}s{% endif %}</strong>
             </span>
             <span class="px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
-                Código: <strong class="text-brand">{{ code_col }}</strong>
+                Col 1: <strong class="text-white">{{ col1 }}</strong>
             </span>
-            <span class="px-2.5 py-1 rounded-md {% if with_barcode %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% endif %}">
-                {% if with_barcode %}Con Código de Barras (Code 128){% else %}Solo Números en Negrita{% endif %}
+            {% if num_cols == 2 %}
+            <span class="px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
+                Col 2: <strong class="text-white">{{ col2 }}</strong>
+            </span>
+            {% endif %}
+            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                {% if card_style == 'barcode' %}Código de Barras + Número
+                {% elif card_style == 'numbers' %}Solo Número en Negrita
+                {% elif card_style == 'text_only' %}Texto Grande Centrado
+                {% elif card_style == 'barcode_only' %}Código de Barras Grande
+                {% endif %}
+            </span>
+            <span class="px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
+                Fuente: <strong class="text-white">{{ font_family }}</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
+                Tamaño: <strong class="text-brand">{% if font_size == 'auto' %}Auto{% else %}{{ font_size }} pt{% endif %}</strong>
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-darkcard2 border border-darkborder text-slate-300">
+                <span class="w-2.5 h-2.5 rounded-full border border-slate-500" style="background-color: {{ font_color }};"></span>
+                <span class="font-mono text-white text-[11px]">{{ font_color }}</span>
             </span>
         </div>
     </div>
@@ -28,7 +47,7 @@
     <!-- Preview Canvas Area -->
     <div class="bg-darkbg/80 border border-darkborder rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center">
         <p class="text-xs text-slate-400 mb-4 text-center">
-            Muestra de tarjetas en hoja A4 (cada una de 3.5 cm × 1.5 cm con líneas de corte gris claro):
+            Muestra a escala de la primera hoja A4 (cada tarjeta mide 3.5 cm × 1.5 cm con líneas de corte sutiles):
         </p>
 
         <div class="max-w-3xl w-full bg-white rounded-lg p-2 sm:p-4 shadow-2xl shadow-black/80 border border-slate-700 overflow-hidden">

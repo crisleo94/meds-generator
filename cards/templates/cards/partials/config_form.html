@@ -3,7 +3,7 @@
     <!-- File Info Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-darkborder gap-4">
         <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-brand">Archivo cargado</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-brand">Catálogo cargado</span>
             <h3 class="text-xl font-bold text-white flex items-center gap-2 mt-0.5">
                 <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -16,7 +16,7 @@
                 <span class="text-slate-400">Total filas:</span> <strong class="text-white">{{ row_count }}</strong>
             </div>
             <div class="px-3 py-1.5 rounded-lg bg-darkcard2 border border-darkborder text-xs text-slate-300">
-                <span class="text-slate-400">Columnas:</span> <strong class="text-white">{{ headers|length }}</strong>
+                <span class="text-slate-400">Columnas detectadas:</span> <strong class="text-white">{{ headers|length }}</strong>
             </div>
         </div>
     </div>
@@ -29,20 +29,64 @@
         {% csrf_token %}
         <input type="hidden" name="file_id" value="{{ file_id }}">
 
+        <!-- 1. Selección de Cantidad de Columnas a Leer -->
+        <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-5 space-y-3">
+            <span class="text-sm font-semibold text-white block">
+                1. ¿Cuántas columnas deseas imprimir en cada tarjeta?
+            </span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label class="flex items-center p-3.5 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/10">
+                    <input type="radio"
+                           name="num_cols"
+                           value="2"
+                           checked
+                           onchange="toggleColCount(2)"
+                           hx-post="{% url 'cards:preview_cards' %}"
+                           hx-target="#preview-area"
+                           hx-trigger="change"
+                           hx-include="#cards-config-form"
+                           hx-indicator="#preview-spinner"
+                           class="h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-white">2 Columnas (Estándar)</span>
+                        <span class="block text-xs text-slate-400">Título superior + Código o Código de barras inferior.</span>
+                    </div>
+                </label>
+
+                <label class="flex items-center p-3.5 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/10">
+                    <input type="radio"
+                           name="num_cols"
+                           value="1"
+                           onchange="toggleColCount(1)"
+                           hx-post="{% url 'cards:preview_cards' %}"
+                           hx-target="#preview-area"
+                           hx-trigger="change"
+                           hx-include="#cards-config-form"
+                           hx-indicator="#preview-spinner"
+                           class="h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-white">1 Sola Columna</span>
+                        <span class="block text-xs text-slate-400">Texto grande centrado o Código de barras grande centrado.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- 2. Selección de Columnas del Excel -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Title Column Selection -->
+            <!-- Columna 1 -->
             <div class="bg-darkcard2/70 border border-darkborder rounded-xl p-5 space-y-2">
-                <label for="title_col" class="block text-sm font-semibold text-white flex items-center justify-between">
-                    <span>1. Columna para el Título</span>
-                    <span class="text-xs text-brand font-normal">Nombre / Dosis / Presentación</span>
+                <label for="col1" class="block text-sm font-semibold text-white flex items-center justify-between">
+                    <span id="col1-label">Columna Principal (Título)</span>
+                    <span class="text-xs text-brand font-normal">Campo 1</span>
                 </label>
-                <p class="text-xs text-slate-400">
-                    Se ajustará dinámicamente en 1 o 2 líneas centradas sin desbordar la tarjeta.
+                <p id="col1-desc" class="text-xs text-slate-400">
+                    Nombre del producto o medicamento. Se autoescalará para no desbordar.
                 </p>
                 <div class="relative mt-2">
-                    <select id="title_col"
-                            name="title_col"
+                    <select id="col1"
+                            name="col1"
                             class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-lg px-4 py-2.5 text-sm text-white appearance-none cursor-pointer"
                             hx-post="{% url 'cards:preview_cards' %}"
                             hx-target="#preview-area"
@@ -50,7 +94,7 @@
                             hx-include="#cards-config-form"
                             hx-indicator="#preview-spinner">
                         {% for h in headers %}
-                            <option value="{{ h }}" {% if h == default_title %}selected{% endif %}>
+                            <option value="{{ h }}" {% if h == default_col1 %}selected{% endif %}>
                                 {{ h }}
                             </option>
                         {% endfor %}
@@ -61,18 +105,18 @@
                 </div>
             </div>
 
-            <!-- Code Column Selection -->
-            <div class="bg-darkcard2/70 border border-darkborder rounded-xl p-5 space-y-2">
-                <label for="code_col" class="block text-sm font-semibold text-white flex items-center justify-between">
-                    <span>2. Columna para el Código</span>
-                    <span class="text-xs text-brand font-normal">CVEART / Código de Barras</span>
+            <!-- Columna 2 (Solo para modo 2 columnas) -->
+            <div id="col2-container" class="bg-darkcard2/70 border border-darkborder rounded-xl p-5 space-y-2">
+                <label for="col2" class="block text-sm font-semibold text-white flex items-center justify-between">
+                    <span>Segunda Columna (Inferior)</span>
+                    <span class="text-xs text-brand font-normal">Campo 2</span>
                 </label>
                 <p class="text-xs text-slate-400">
-                    Se imprimirá en negrita o se usará para generar el código de barras Code 128.
+                    Código, CVEART o código de barras que va centrado en la parte inferior.
                 </p>
                 <div class="relative mt-2">
-                    <select id="code_col"
-                            name="code_col"
+                    <select id="col2"
+                            name="col2"
                             class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-lg px-4 py-2.5 text-sm text-white appearance-none cursor-pointer"
                             hx-post="{% url 'cards:preview_cards' %}"
                             hx-target="#preview-area"
@@ -80,7 +124,7 @@
                             hx-include="#cards-config-form"
                             hx-indicator="#preview-spinner">
                         {% for h in headers %}
-                            <option value="{{ h }}" {% if h == default_code %}selected{% endif %}>
+                            <option value="{{ h }}" {% if h == default_col2 %}selected{% endif %}>
                                 {{ h }}
                             </option>
                         {% endfor %}
@@ -93,15 +137,123 @@
 
         </div>
 
-        <!-- Barcode vs Numbers Selection -->
+        <!-- 3. Tipografía, Tamaño y Color -->
         <div class="bg-darkcard2/50 border border-darkborder rounded-xl p-5 space-y-4">
-            <span class="text-sm font-semibold text-white block">3. Tipo de tarjeta en el PDF final:</span>
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-semibold text-white block">3. Tipografía, Tamaño y Color:</span>
+                <span class="text-xs text-slate-400">Personaliza y estandariza la apariencia</span>
+            </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Option 1: Con Código de Barras -->
-                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:bg-darkbg hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5 has-[:checked]:shadow-lg has-[:checked]:shadow-brand/5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Familia de Fuente -->
+                <div>
+                    <label for="font_family" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Tipo de Fuente
+                    </label>
+                    <div class="relative">
+                        <select id="font_family"
+                                name="font_family"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer"
+                                hx-post="{% url 'cards:preview_cards' %}"
+                                hx-target="#preview-area"
+                                hx-trigger="change"
+                                hx-include="#cards-config-form"
+                                hx-indicator="#preview-spinner">
+                            <option value="Helvetica" selected>Helvetica (Limpia / Estándar)</option>
+                            <option value="Helvetica-Bold">Helvetica (Negrita - Recomendado)</option>
+                            <option value="Times-Roman">Times New Roman (Serif)</option>
+                            <option value="Times-Bold">Times New Roman (Negrita)</option>
+                            <option value="Courier">Courier (Monospaciado)</option>
+                            <option value="Courier-Bold">Courier (Monospaciado Negrita)</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tamaño de Fuente -->
+                <div>
+                    <label for="font_size" class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>Tamaño de Fuente</span>
+                        <span class="text-[10px] text-brand font-medium">Estándar o Auto</span>
+                    </label>
+                    <div class="relative">
+                        <select id="font_size"
+                                name="font_size"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer"
+                                hx-post="{% url 'cards:preview_cards' %}"
+                                hx-target="#preview-area"
+                                hx-trigger="change"
+                                hx-include="#cards-config-form"
+                                hx-indicator="#preview-spinner">
+                            <option value="auto">Auto (Adaptativo variable)</option>
+                            <option value="8">8 pt</option>
+                            <option value="9">9 pt</option>
+                            <option value="10">10 pt</option>
+                            <option value="11">11 pt</option>
+                            <option value="12">12 pt</option>
+                            <option value="13">13 pt</option>
+                            <option value="14">14 pt (Grande estandarizado)</option>
+                            <option value="15">15 pt</option>
+                            <option value="16">16 pt (Extra grande estandarizado)</option>
+                            <option value="18">18 pt</option>
+                            <option value="20">20 pt</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-slate-400 mt-1 block">
+                        Al seleccionar un tamaño (ej. 14 o 16 pt), todas las tarjetas mantendrán exactamente esa medida uniforme.
+                    </span>
+                </div>
+
+                <!-- Color de Fuente -->
+                <div>
+                    <label for="font_color" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Color del Texto
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="color"
+                               id="font_color"
+                               name="font_color"
+                               value="#000000"
+                               class="w-10 h-9 p-0.5 rounded-lg bg-darkbg border border-darkborder cursor-pointer"
+                               hx-post="{% url 'cards:preview_cards' %}"
+                               hx-target="#preview-area"
+                               hx-trigger="change"
+                               hx-include="#cards-config-form"
+                               hx-indicator="#preview-spinner"
+                               oninput="document.getElementById('font_color_hex').value = this.value">
+                        <input type="text"
+                               id="font_color_hex"
+                               value="#000000"
+                               maxlength="7"
+                               class="w-24 bg-darkbg border border-darkborder focus:border-brand rounded-lg px-2.5 py-1.5 text-xs text-white font-mono uppercase"
+                               onchange="document.getElementById('font_color').value = this.value; htmx.trigger(document.getElementById('font_color'), 'change');">
+                    </div>
+                    <!-- Paleta rápida -->
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <button type="button" title="Negro" onclick="setColor('#000000')" class="w-5 h-5 rounded-full bg-black border border-slate-600 hover:scale-110 transition-transform"></button>
+                        <button type="button" title="Azul Marino" onclick="setColor('#1e3a8a')" class="w-5 h-5 rounded-full bg-blue-900 border border-slate-600 hover:scale-110 transition-transform"></button>
+                        <button type="button" title="Rojo Oscuro" onclick="setColor('#991b1b')" class="w-5 h-5 rounded-full bg-red-800 border border-slate-600 hover:scale-110 transition-transform"></button>
+                        <button type="button" title="Verde Farmacia" onclick="setColor('#166534')" class="w-5 h-5 rounded-full bg-emerald-800 border border-slate-600 hover:scale-110 transition-transform"></button>
+                        <button type="button" title="Gris Grafito" onclick="setColor('#374151')" class="w-5 h-5 rounded-full bg-slate-700 border border-slate-600 hover:scale-110 transition-transform"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Modo de Visualización / Estilo -->
+        <div class="bg-darkcard2/50 border border-darkborder rounded-xl p-5 space-y-4">
+            <span class="text-sm font-semibold text-white block">4. Estilo visual de la tarjeta:</span>
+
+            <!-- Opciones para 2 Columnas -->
+            <div id="style-options-2cols" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5">
                     <input type="radio"
-                           name="barcode_mode"
+                           name="card_style"
                            value="barcode"
                            checked
                            class="mt-1 h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg"
@@ -111,17 +263,14 @@
                            hx-include="#cards-config-form"
                            hx-indicator="#preview-spinner">
                     <div class="ml-3">
-                        <span class="block text-sm font-semibold text-white">Generar Código de Barras</span>
-                        <span class="block text-xs text-slate-400 mt-0.5">
-                            Genera barras vectoriales Code 128 con el número en negrita centrado debajo.
-                        </span>
+                        <span class="block text-sm font-semibold text-white">Código de Barras (Code 128) + Número</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Título arriba y código de barras vectorial centrado abajo.</span>
                     </div>
                 </label>
 
-                <!-- Option 2: Solo Números -->
-                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:bg-darkbg hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5 has-[:checked]:shadow-lg has-[:checked]:shadow-brand/5">
+                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5">
                     <input type="radio"
-                           name="barcode_mode"
+                           name="card_style"
                            value="numbers"
                            class="mt-1 h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg"
                            hx-post="{% url 'cards:preview_cards' %}"
@@ -130,15 +279,50 @@
                            hx-include="#cards-config-form"
                            hx-indicator="#preview-spinner">
                     <div class="ml-3">
-                        <span class="block text-sm font-semibold text-white">Solo Número (Sin barras)</span>
-                        <span class="block text-xs text-slate-400 mt-0.5">
-                            Muestra el número en negrita debajo del título, centrado y proporcional.
-                        </span>
+                        <span class="block text-sm font-semibold text-white">Solo Número en Negrita</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Título arriba y número centrado abajo en negrita (sin barras).</span>
                     </div>
                 </label>
             </div>
 
-            <!-- Extra Checkbox: Clean Symbols -->
+            <!-- Opciones para 1 Columna (Ocultas por defecto) -->
+            <div id="style-options-1col" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+                    <input type="radio"
+                           name="card_style"
+                           value="text_only"
+                           id="radio-text-only"
+                           class="mt-1 h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg"
+                           hx-post="{% url 'cards:preview_cards' %}"
+                           hx-target="#preview-area"
+                           hx-trigger="change"
+                           hx-include="#cards-config-form"
+                           hx-indicator="#preview-spinner">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-white">Texto Grande Centrado</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Aprovecha toda la altura de 1.5 cm para máxima legibilidad.</span>
+                    </div>
+                </label>
+
+                <label class="relative flex items-start p-4 rounded-xl border border-darkborder bg-darkbg/60 hover:border-brand/60 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+                    <input type="radio"
+                           name="card_style"
+                           value="barcode_only"
+                           id="radio-barcode-only"
+                           class="mt-1 h-4 w-4 text-brand border-darkborder focus:ring-brand bg-darkbg"
+                           hx-post="{% url 'cards:preview_cards' %}"
+                           hx-target="#preview-area"
+                           hx-trigger="change"
+                           hx-include="#cards-config-form"
+                           hx-indicator="#preview-spinner">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-white">Código de Barras Grande Centrado</span>
+                        <span class="block text-xs text-slate-400 mt-0.5">Convierte el valor en un código de barras alto y escaneable.</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Limpiar Símbolos -->
             <div class="pt-2">
                 <label class="inline-flex items-center cursor-pointer select-none">
                     <input type="checkbox"
@@ -157,10 +341,8 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Botones de Acción -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-darkborder">
-
-            <!-- Live Preview Trigger Button -->
             <button type="button"
                     hx-post="{% url 'cards:preview_cards' %}"
                     hx-target="#preview-area"
@@ -174,7 +356,6 @@
                 <span>Actualizar Vista Previa</span>
             </button>
 
-            <!-- PDF Download Button -->
             <button type="submit"
                     class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-dark text-slate-950 font-bold text-sm shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,12 +363,11 @@
                 </svg>
                 <span>Generar y Descargar PDF A4</span>
             </button>
-
         </div>
 
     </form>
 
-    <!-- Auto-trigger preview on load -->
+    <!-- Disparar vista previa inicial -->
     <div hx-post="{% url 'cards:preview_cards' %}"
          hx-target="#preview-area"
          hx-include="#cards-config-form"
@@ -197,3 +377,39 @@
     </div>
 
 </div>
+
+<script>
+    function setColor(hex) {
+        const inputColor = document.getElementById('font_color');
+        const inputHex = document.getElementById('font_color_hex');
+        if (inputColor && inputHex) {
+            inputColor.value = hex;
+            inputHex.value = hex;
+            htmx.trigger(inputColor, 'change');
+        }
+    }
+
+    function toggleColCount(numCols) {
+        const col2Container = document.getElementById('col2-container');
+        const style2Cols = document.getElementById('style-options-2cols');
+        const style1Col = document.getElementById('style-options-1col');
+        const col1Label = document.getElementById('col1-label');
+        const col1Desc = document.getElementById('col1-desc');
+
+        if (numCols === 1) {
+            col2Container.classList.add('hidden');
+            style2Cols.classList.add('hidden');
+            style1Col.classList.remove('hidden');
+            col1Label.innerText = 'Columna a Imprimir';
+            col1Desc.innerText = 'Esta columna ocupará toda la tarjeta.';
+            document.getElementById('radio-text-only').checked = true;
+        } else {
+            col2Container.classList.remove('hidden');
+            style2Cols.classList.remove('hidden');
+            style1Col.classList.add('hidden');
+            col1Label.innerText = 'Columna Principal (Título)';
+            col1Desc.innerText = 'Nombre del producto o medicamento. Se autoescalará para no desbordar.';
+            style2Cols.querySelector('input[value="barcode"]').checked = true;
+        }
+    }
+</script>

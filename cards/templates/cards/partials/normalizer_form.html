@@ -1,0 +1,125 @@
+<div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+
+    <!-- Header info -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-darkborder gap-4">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-brand">Archivo para Normalizar</span>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2 mt-0.5">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ filename }}
+            </h3>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="px-3 py-1.5 rounded-lg bg-darkcard2 border border-darkborder text-xs text-slate-300">
+                <span class="text-slate-400">Filas aprox:</span> <strong class="text-white">{{ row_count }}</strong>
+            </div>
+            <div class="px-3 py-1.5 rounded-lg bg-darkcard2 border border-darkborder text-xs text-slate-300">
+                <span class="text-slate-400">Columnas:</span> <strong class="text-white">{{ headers|length }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapping Form -->
+    <form hx-post="{% url 'cards:process_normalizer_excel' %}"
+          hx-target="#normalizer-result-container"
+          hx-indicator="#norm-proc-spinner"
+          class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="file_id" value="{{ file_id }}">
+
+        <!-- 1. Checkboxes para seleccionar columnas a consolidar -->
+        <div class="bg-darkcard2/60 border border-darkborder rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-sm font-semibold text-white block">
+                        1. Selecciona las columnas con nombres de medicamentos a consolidar:
+                    </span>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Todos los medicamentos de estas columnas se apilarán en una sola lista única y ordenada.
+                    </p>
+                </div>
+                <button type="button"
+                        onclick="selectAllCols(true)"
+                        class="text-xs text-brand hover:underline font-medium">
+                    Marcar todas
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+                {% for h in headers %}
+                <label class="flex items-center p-3 rounded-lg border border-darkborder bg-darkbg/50 hover:border-brand/40 cursor-pointer transition-all has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+                    <input type="checkbox"
+                           name="selected_cols"
+                           value="{{ h }}"
+                           checked
+                           class="norm-col-check h-4 w-4 rounded text-brand border-darkborder focus:ring-brand bg-darkbg">
+                    <span class="ml-2.5 text-xs font-mono text-slate-200 truncate" title="{{ h }}">{{ h }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 2. Columna opcional de códigos -->
+        <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-5 space-y-2">
+            <label for="norm_code_col" class="block text-sm font-semibold text-white flex items-center justify-between">
+                <span>2. Columna asociada para Códigos / CVEART (Opcional)</span>
+                <span class="text-xs text-slate-400">Si existe en el archivo</span>
+            </label>
+            <p class="text-xs text-slate-400">
+                Si seleccionas una columna de código, se mantendrá en paralelo al normalizar.
+            </p>
+            <div class="relative mt-2">
+                <select id="norm_code_col"
+                        name="code_col"
+                        class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-lg px-4 py-2.5 text-sm text-white appearance-none cursor-pointer">
+                    <option value="__none__">-- Ninguna (Solo consolidar nombres de medicamentos) --</option>
+                    {% for h in headers %}
+                        <option value="{{ h }}">{{ h }}</option>
+                    {% endfor %}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Opciones de limpieza -->
+        <div class="flex items-center justify-between pt-1">
+            <label class="inline-flex items-center cursor-pointer select-none">
+                <input type="checkbox"
+                       name="remove_duplicates"
+                       checked
+                       class="h-4 w-4 rounded text-brand border-darkborder focus:ring-brand bg-darkbg">
+                <span class="ml-2.5 text-sm text-slate-300">
+                    Eliminar registros repetidos o duplicados automáticamente
+                </span>
+            </label>
+
+            <button type="submit"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-dark text-slate-950 font-bold text-sm shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Normalizar y Consolidar</span>
+                <span id="norm-proc-spinner" class="htmx-indicator ml-2">
+                    <svg class="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Contenedor del Resultado -->
+    <div id="normalizer-result-container" class="transition-all"></div>
+
+</div>
+
+<script>
+    function selectAllCols(status) {
+        document.querySelectorAll('.norm-col-check').forEach(cb => cb.checked = status);
+    }
+</script>

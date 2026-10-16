@@ -3,69 +3,202 @@
 {% block content %}
 <div class="space-y-8">
 
-    <!-- Hero / Upload Section -->
-    <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ======================================================================= -->
+    <!-- PESTAÑA 1: IMPRESIÓN DE TARJETAS                                        -->
+    <!-- ======================================================================= -->
+    <div id="panel-cards" class="tab-panel space-y-8 {% if active_tab != 'cards' %}hidden{% endif %}">
 
-        <div class="max-w-2xl">
-            <h2 class="text-2xl font-bold text-white tracking-tight">1. Importar archivo Excel (.xlsx)</h2>
-            <p class="text-sm text-slate-400 mt-1">
-                Sube tu catálogo o lista de medicamentos. La plataforma analizará automáticamente las columnas y te permitirá configurar el título, código de barras y opciones de impresión.
-            </p>
+        <!-- Hero / Upload Section -->
+        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand">Herramienta 1</span>
+                <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Impresión de Tarjetas A4</h2>
+                <p class="text-sm text-slate-400 mt-1">
+                    Importa tu catálogo en Excel. Puedes elegir imprimir <strong>1 columna</strong> (texto grande centrado o código de barras grande) o <strong>2 columnas</strong> (título superior y código/barras inferior) con tarjetas exactas de 3.5 × 1.5 cm.
+                </p>
+            </div>
+
+            <!-- Upload Form with HTMX -->
+            <form id="upload-form"
+                  hx-post="{% url 'cards:upload_excel' %}"
+                  hx-target="#config-area"
+                  hx-swap="innerHTML"
+                  hx-indicator="#upload-spinner"
+                  enctype="multipart/form-data"
+                  class="mt-6">
+
+                <div class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
+                     onclick="document.getElementById('excel_file_input').click()">
+
+                    <input type="file"
+                           id="excel_file_input"
+                           name="excel_file"
+                           accept=".xlsx,.xlsm"
+                           class="hidden"
+                           onchange="if(this.files.length) { document.getElementById('selected-filename').innerText = this.files[0].name; htmx.trigger('#upload-form', 'submit'); }">
+
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-200">
+                                Haz clic para seleccionar o arrastra aquí tu archivo <span class="text-brand font-semibold">.xlsx</span>
+                            </p>
+                            <p id="selected-filename" class="text-xs text-slate-400 mt-1">
+                                Ejemplo: PATENTE.xlsx
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- HTMX Loading Indicator -->
+                    <div id="upload-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                        <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-brand">Leyendo columnas y analizando datos...</span>
+                    </div>
+                </div>
+            </form>
         </div>
 
-        <!-- Upload Form with HTMX -->
-        <form id="upload-form"
-              hx-post="{% url 'cards:upload_excel' %}"
-              hx-target="#config-area"
-              hx-swap="innerHTML"
-              hx-indicator="#upload-spinner"
-              enctype="multipart/form-data"
-              class="mt-6">
+        <!-- Configuration Area (Swapped via HTMX) -->
+        <div id="config-area" class="transition-all"></div>
 
-            <div class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
-                 onclick="document.getElementById('excel_file_input').click()">
+        <!-- Preview Area (Swapped via HTMX) -->
+        <div id="preview-area" class="transition-all"></div>
 
-                <input type="file"
-                       id="excel_file_input"
-                       name="excel_file"
-                       accept=".xlsx,.xlsm"
-                       class="hidden"
-                       onchange="if(this.files.length) { document.getElementById('selected-filename').innerText = this.files[0].name; htmx.trigger('#upload-form', 'submit'); }">
-
-                <div class="flex flex-col items-center justify-center space-y-3">
-                    <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-slate-200">
-                            Haz clic para seleccionar o arrastra aquí tu archivo <span class="text-brand font-semibold">.xlsx</span>
-                        </p>
-                        <p id="selected-filename" class="text-xs text-slate-400 mt-1">
-                            Ejemplo: PATENTE.xlsx
-                        </p>
-                    </div>
-                </div>
-
-                <!-- HTMX Loading Indicator -->
-                <div id="upload-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
-                    <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span class="text-sm font-medium text-brand">Leyendo columnas y analizando datos...</span>
-                </div>
-            </div>
-        </form>
     </div>
 
-    <!-- Configuration Area (Swapped via HTMX) -->
-    <div id="config-area" class="transition-all"></div>
+    <!-- ======================================================================= -->
+    <!-- PESTAÑA 2: ORDENADOR DE LISTAS DE TEXTO (FLUJO n8n)                     -->
+    <!-- ======================================================================= -->
+    <div id="panel-sorter" class="tab-panel space-y-8 {% if active_tab != 'sorter' %}hidden{% endif %}">
+        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand">Herramienta 2</span>
+                <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Ordenador y Limpiador de Listas</h2>
+                <p class="text-sm text-slate-400 mt-1">
+                    Pega una lista desordenada (como las que devuelven los LLMs o reportes). La herramienta limpiará comillas, guiones, viñetas y asteriscos residuales, normalizará los espacios y ordenará alfabéticamente en español de forma estricta.
+                </p>
+            </div>
 
-    <!-- Preview Area (Swapped via HTMX) -->
-    <div id="preview-area" class="transition-all"></div>
+            <form hx-post="{% url 'cards:sort_list' %}"
+                  hx-target="#sorter-result-area"
+                  hx-indicator="#sorter-spinner"
+                  class="mt-6 space-y-6">
+
+                <div>
+                    <label for="raw_text" class="block text-sm font-semibold text-white mb-2 flex items-center justify-between">
+                        <span>Ingresa o pega tu lista de medicamentos:</span>
+                        <span class="text-xs text-slate-400">Un elemento por línea</span>
+                    </label>
+                    <textarea id="raw_text"
+                              name="raw_text"
+                              rows="10"
+                              placeholder="- *AMOXIL 500MG CAPS 12&#10;• PARACETAMOL 500MG&#10;&quot;IBUPROFENO 400MG&quot;&#10;*ACETILSALICILICO 100MG"
+                              class="w-full bg-darkbg border border-darkborder focus:border-brand focus:ring-1 focus:ring-brand rounded-xl p-4 text-sm font-mono text-slate-200 placeholder-slate-600 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                    <label class="inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox"
+                               name="remove_duplicates"
+                               checked
+                               class="h-4 w-4 rounded text-brand border-darkborder focus:ring-brand bg-darkbg">
+                        <span class="ml-2.5 text-sm text-slate-300">
+                            Eliminar automáticamente elementos duplicados
+                        </span>
+                    </label>
+
+                    <button type="submit"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-dark text-slate-950 font-bold text-sm shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/>
+                        </svg>
+                        <span>Limpiar y Ordenar Lista</span>
+                        <span id="sorter-spinner" class="htmx-indicator ml-2">
+                            <svg class="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Área de Resultados del Ordenador -->
+            <div id="sorter-result-area" class="mt-8 transition-all"></div>
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- PESTAÑA 3: NORMALIZADOR DE EXCEL                                        -->
+    <!-- ======================================================================= -->
+    <div id="panel-normalizer" class="tab-panel space-y-8 {% if active_tab != 'normalizer' %}hidden{% endif %}">
+        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand">Herramienta 3</span>
+                <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Normalizador de Catálogos Excel</h2>
+                <p class="text-sm text-slate-400 mt-1">
+                    ¿Tienes un Excel desestructurado donde los medicamentos están repartidos en múltiples columnas o sin orden? Súbelo aquí para consolidarlos todos en una sola columna limpia, ordenada alfabéticamente y lista para imprimir.
+                </p>
+            </div>
+
+            <!-- Upload Normalizer Excel Form -->
+            <form id="normalizer-upload-form"
+                  hx-post="{% url 'cards:upload_normalizer_excel' %}"
+                  hx-target="#normalizer-config-area"
+                  hx-indicator="#normalizer-upload-spinner"
+                  enctype="multipart/form-data"
+                  class="mt-6">
+
+                <div class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
+                     onclick="document.getElementById('normalizer_excel_file').click()">
+
+                    <input type="file"
+                           id="normalizer_excel_file"
+                           name="excel_file"
+                           accept=".xlsx,.xlsm"
+                           class="hidden"
+                           onchange="if(this.files.length) { document.getElementById('normalizer-selected-filename').innerText = this.files[0].name; htmx.trigger('#normalizer-upload-form', 'submit'); }">
+
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-200">
+                                Sube el archivo Excel desordenado a consolidar
+                            </p>
+                            <p id="normalizer-selected-filename" class="text-xs text-slate-400 mt-1">
+                                Formato soportado: .xlsx
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Spinner -->
+                    <div id="normalizer-upload-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                        <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-brand">Analizando estructura del archivo...</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Configuration / Mapping Area for Normalizer -->
+            <div id="normalizer-config-area" class="mt-8 transition-all"></div>
+        </div>
+    </div>
 
 </div>
 {% endblock %}
