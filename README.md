@@ -1,10 +1,23 @@
-# Herramientas de Farmacia (Suite Web A4)
+# Herramientas (Suite Web Multifunción)
 
-Aplicación web desarrollada en **Django + HTMX** con tema oscuro estructurada en 3 herramientas esenciales:
+Aplicación web desarrollada en **Django + HTMX** con tema oscuro estructurada en dos grandes áreas de trabajo y múltiples utilidades de procesamiento efímero en memoria:
 
+### 💊 1. Farmacia
 1. **🖨️ Impresión de Tarjetas A4**: Generación de tarjetas para cenefa (3.5 × 1.5 cm) en formato A4 con soporte dinámico para **1 columna** (texto grande o código de barras grande) o **2 columnas** (título + código/código de barras).
 2. **📝 Ordenador de Listas (Reemplazo n8n)**: Limpieza y ordenamiento alfabético estricto en español para listas de texto desordenadas (eliminación de viñetas, comillas, guiones y espacios redundantes), con copia al portapapeles y descarga en `.txt`.
 3. **📊 Normalizador de Excel**: Consolidación y desaplanado de múltiples columnas dispersas en un Excel estructurado, ordenado y listo para impresión.
+
+### 🖼️ 2. Imágenes
+1. **📝 Extraer Texto (OCR)**: Extracción de texto desde imágenes (fotos, capturas, facturas o documentos) mediante **Tesseract OCR** en memoria RAM. Soporta idiomas español e inglés, preprocesamiento de imagen (contraste, binarización blanco/negro) y copia directa al portapapeles o descarga en `.txt`.
+2. **🔄 Convertir Imágenes con FFmpeg**: Conversión instantánea a formatos optimizados (**WebP, JPG, PNG, AVIF, ICO, GIF, BMP**) mediante tuberías FFmpeg (`pipe:0` a `pipe:1`) en memoria RAM, con control interactivo de compresión/calidad, escalado proporcional y eliminación de metadatos EXIF.
+
+---
+
+## 🔒 Garantía de Almacenamiento Cero (Zero-Disk / Ephemeral)
+
+* **Cero persistencia:** Ninguna imagen, texto procesado ni archivo convertido se almacena en el disco, contenedor o nube.
+* **Procesamiento en RAM:** Tanto Tesseract OCR como las conversiones de FFmpeg operan directamente sobre flujos binarios en memoria (`io.BytesIO` y tuberías `stdin/stdout`).
+* **Descarga inmediata:** Los resultados se sirven directamente al navegador como streams de respuesta HTTP con eliminación instantánea.
 
 Gestionado nativamente con **`uv`** y `pyproject.toml`.
 

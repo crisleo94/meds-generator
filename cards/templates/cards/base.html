@@ -1,9 +1,13 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Herramientas de Farmacia • Suite A4{% endblock %}</title>
+    <title>{% block title %}Herramientas • Suite de Utilidades{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,52 +47,94 @@
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
     <!-- Header con título Herramientas -->
-    <header class="border-b border-darkborder bg-darkcard/80 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <header class="border-b border-darkborder bg-darkcard/90 backdrop-blur sticky top-0 z-50 shadow-lg shadow-black/20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            
+            <!-- Logo y Título Global -->
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-dark to-brand flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-brand/20">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-dark to-brand flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-brand/20 shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                        Herramientas <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/20">Suite Farmacia</span>
+                        Herramientas <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/20">Suite</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Impresión de tarjetas, ordenamiento de listas y normalizador de catálogos</p>
+                    <p class="text-xs text-slate-400">Procesamiento temporal en memoria • Sin almacenamiento persistente</p>
                 </div>
             </div>
-            <div class="hidden sm:flex items-center space-x-2 text-xs font-mono text-slate-400 bg-darkcard2 px-3 py-1.5 rounded-lg border border-darkborder">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>En línea • Modo Oscuro</span>
+
+            <!-- Pestañas Principales (Nivel 1): Farmacia e Imágenes -->
+            <div class="flex items-center bg-darkcard2/80 p-1.5 rounded-xl border border-darkborder shadow-inner">
+                <button type="button"
+                        onclick="switchMainCategory('farmacia')"
+                        id="main-tab-btn-farmacia"
+                        class="main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 bg-brand text-slate-950 shadow-md shadow-brand/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                    <span>Farmacia</span>
+                </button>
+
+                <button type="button"
+                        onclick="switchMainCategory('imagenes')"
+                        id="main-tab-btn-imagenes"
+                        class="main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-darkcard2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Imágenes</span>
+                </button>
             </div>
         </div>
 
-        <!-- Barra de Navegación por Pestañas (Tabs) -->
+        <!-- Barra de Sub-Pestañas (Nivel 2) -->
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <nav class="flex space-x-2 border-t border-darkborder/50 pt-2 pb-0 text-sm font-medium overflow-x-auto">
+            
+            <!-- Subtabs: Farmacia -->
+            <nav id="subnav-farmacia" class="flex space-x-2 border-t border-darkborder/50 pt-2 pb-0 text-sm font-medium overflow-x-auto">
                 <button type="button"
-                        onclick="switchTab('cards')"
-                        id="tab-btn-cards"
-                        class="tab-btn px-4 py-2.5 rounded-t-lg border-b-2 font-semibold transition-all flex items-center gap-2 text-brand border-brand bg-darkcard2/40">
+                        onclick="switchSubTab('farmacia', 'cards')"
+                        id="subtab-btn-cards"
+                        class="subtab-btn px-4 py-2 rounded-t-lg border-b-2 font-semibold transition-all flex items-center gap-2 text-brand border-brand bg-darkcard2/40">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     <span>Impresión de Tarjetas</span>
                 </button>
                 <button type="button"
-                        onclick="switchTab('sorter')"
-                        id="tab-btn-sorter"
-                        class="tab-btn px-4 py-2.5 rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                        onclick="switchSubTab('farmacia', 'sorter')"
+                        id="subtab-btn-sorter"
+                        class="subtab-btn px-4 py-2 rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
                     <span>Ordenador de Listas</span>
                 </button>
                 <button type="button"
-                        onclick="switchTab('normalizer')"
-                        id="tab-btn-normalizer"
-                        class="tab-btn px-4 py-2.5 rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                        onclick="switchSubTab('farmacia', 'normalizer')"
+                        id="subtab-btn-normalizer"
+                        class="subtab-btn px-4 py-2 rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Normalizador de Excel</span>
                 </button>
             </nav>
+
+            <!-- Subtabs: Imágenes -->
+            <nav id="subnav-imagenes" class="hidden flex space-x-2 border-t border-darkborder/50 pt-2 pb-0 text-sm font-medium overflow-x-auto">
+                <button type="button"
+                        onclick="switchSubTab('imagenes', 'ocr')"
+                        id="subtab-btn-ocr"
+                        class="subtab-btn px-4 py-2 rounded-t-lg border-b-2 font-semibold transition-all flex items-center gap-2 text-brand border-brand bg-darkcard2/40">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Extraer Texto (OCR)</span>
+                </button>
+                <button type="button"
+                        onclick="switchSubTab('imagenes', 'converter')"
+                        id="subtab-btn-converter"
+                        class="subtab-btn px-4 py-2 rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Convertir Imágenes (FFmpeg)</span>
+                </button>
+            </nav>
+
         </div>
     </header>
 
@@ -99,25 +145,62 @@
 
     <!-- Footer -->
     <footer class="border-t border-darkborder bg-darkcard/40 py-6 text-center text-xs text-slate-500">
-        <p>Herramientas de Farmacia • Impresión A4 • Limpieza y Ordenamiento • Consolidación Excel</p>
+        <p>Herramientas Web • Farmacia (Tarjetas A4, Ordenador, Normalizador) • Imágenes (OCR Tesseract, Conversor FFmpeg)</p>
     </footer>
 
     <script>
-        function switchTab(tabName) {
-            // Ocultar todos los paneles de pestañas
+        let currentCategory = 'farmacia';
+        let currentFarmaciaSubtab = 'cards';
+        let currentImagenesSubtab = 'ocr';
+
+        function switchMainCategory(category) {
+            currentCategory = category;
+
+            // Actualizar estilo botones principales
+            const btnFarmacia = document.getElementById('main-tab-btn-farmacia');
+            const btnImagenes = document.getElementById('main-tab-btn-imagenes');
+            const subnavFarmacia = document.getElementById('subnav-farmacia');
+            const subnavImagenes = document.getElementById('subnav-imagenes');
+
+            if (category === 'farmacia') {
+                btnFarmacia.className = 'main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 bg-brand text-slate-950 shadow-md shadow-brand/20';
+                btnImagenes.className = 'main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-darkcard2';
+                subnavFarmacia.classList.remove('hidden');
+                subnavImagenes.classList.add('hidden');
+                switchSubTab('farmacia', currentFarmaciaSubtab);
+            } else {
+                btnImagenes.className = 'main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 bg-brand text-slate-950 shadow-md shadow-brand/20';
+                btnFarmacia.className = 'main-tab-btn px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-darkcard2';
+                subnavFarmacia.classList.add('hidden');
+                subnavImagenes.classList.remove('hidden');
+                switchSubTab('imagenes', currentImagenesSubtab);
+            }
+        }
+
+        function switchSubTab(category, subtabName) {
+            if (category === 'farmacia') {
+                currentFarmaciaSubtab = subtabName;
+            } else {
+                currentImagenesSubtab = subtabName;
+            }
+
+            // Ocultar todos los paneles
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
-            // Quitar estilos activos de todos los botones
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('text-brand', 'border-brand', 'bg-darkcard2/40');
-                btn.classList.add('border-transparent', 'text-slate-400');
-            });
-            // Mostrar el panel seleccionado
-            const activePanel = document.getElementById('panel-' + tabName);
+
+            // Mostrar el panel activo
+            const activePanel = document.getElementById('panel-' + subtabName);
             if (activePanel) {
                 activePanel.classList.remove('hidden');
             }
-            // Activar el botón correspondiente
-            const activeBtn = document.getElementById('tab-btn-' + tabName);
+
+            // Actualizar estados de botones de la barra correspondiente
+            const containerId = category === 'farmacia' ? '#subnav-farmacia' : '#subnav-imagenes';
+            document.querySelectorAll(`${containerId} .subtab-btn`).forEach(btn => {
+                btn.classList.remove('text-brand', 'border-brand', 'bg-darkcard2/40');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const activeBtn = document.getElementById('subtab-btn-' + subtabName);
             if (activeBtn) {
                 activeBtn.classList.remove('border-transparent', 'text-slate-400');
                 activeBtn.classList.add('text-brand', 'border-brand', 'bg-darkcard2/40');
