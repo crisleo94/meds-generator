@@ -200,5 +200,324 @@
         </div>
     </div>
 
+    <!-- ======================================================================= -->
+    <!-- PESTAÑA 4: EXTRAER TEXTO DE IMÁGENES (OCR)                              -->
+    <!-- ======================================================================= -->
+    <div id="panel-ocr" class="tab-panel space-y-8 hidden">
+        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand">Herramienta Imágenes 1</span>
+                <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Extractor de Texto de Imágenes (OCR)</h2>
+                <p class="text-sm text-slate-400 mt-1">
+                    Extrae texto de fotografías, facturas, capturas de pantalla o documentos escaneados utilizando Tesseract OCR. Procesamiento en RAM sin persistencia en disco ni almacenamiento en la nube.
+                </p>
+            </div>
+
+            <!-- Upload and OCR Form -->
+            <form id="ocr-form"
+                  hx-post="{% url 'images:ocr_extract' %}"
+                  hx-target="#ocr-result-area"
+                  hx-indicator="#ocr-spinner"
+                  enctype="multipart/form-data"
+                  class="mt-6 space-y-6">
+
+                <!-- Drag & Drop Zone -->
+                <div id="ocr-dropzone"
+                     class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
+                     onclick="document.getElementById('ocr_image_file').click()">
+
+                    <input type="file"
+                           id="ocr_image_file"
+                           name="image"
+                           accept="image/*"
+                           class="hidden"
+                           onchange="handleOcrFileSelect(this)">
+
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-200">
+                                Haz clic para seleccionar, arrastra una imagen o presiona <kbd class="px-1.5 py-0.5 rounded bg-darkcard2 border border-darkborder text-xs text-brand font-mono">Ctrl + V</kbd>
+                            </p>
+                            <p id="ocr-selected-filename" class="text-xs text-slate-400 mt-1">
+                                Formatos soportados: PNG, JPG, JPEG, WEBP, BMP, TIFF
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Spinner -->
+                    <div id="ocr-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                        <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-brand">Procesando OCR en memoria...</span>
+                    </div>
+                </div>
+
+                <!-- Opciones de Configuración OCR -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <!-- Idioma -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-1.5">
+                        <label for="ocr_lang" class="block text-xs font-semibold text-slate-300">
+                            Idioma de Reconocimiento
+                        </label>
+                        <select id="ocr_lang"
+                                name="lang"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand rounded-lg px-3 py-2 text-xs text-white cursor-pointer">
+                            <option value="spa+eng" selected>Español + Inglés (Recomendado)</option>
+                            <option value="spa">Solo Español (spa)</option>
+                            <option value="eng">Solo Inglés (eng)</option>
+                        </select>
+                        <span class="text-[11px] text-slate-500 block">Usa modelos entrenados locales (tessdata).</span>
+                    </div>
+
+                    <!-- Preprocesamiento -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-1.5">
+                        <label for="ocr_preprocess" class="block text-xs font-semibold text-slate-300">
+                            Filtro de Preprocesamiento
+                        </label>
+                        <select id="ocr_preprocess"
+                                name="preprocess"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand rounded-lg px-3 py-2 text-xs text-white cursor-pointer">
+                            <option value="contrast" selected>Refuerzo de Contraste 2x</option>
+                            <option value="threshold">Binarización B/N (Threshold)</option>
+                            <option value="grayscale">Escala de Grises</option>
+                            <option value="none">Sin filtros (Original)</option>
+                        </select>
+                        <span class="text-[11px] text-slate-500 block">Mejora el reconocimiento en fotos o fondo ruidoso.</span>
+                    </div>
+
+                    <!-- Modo de Segmentación (PSM) -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-1.5">
+                        <label for="ocr_psm" class="block text-xs font-semibold text-slate-300">
+                            Segmentación de Página (PSM)
+                        </label>
+                        <select id="ocr_psm"
+                                name="psm"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand rounded-lg px-3 py-2 text-xs text-white cursor-pointer">
+                            <option value="3" selected>Automático completo (PSM 3)</option>
+                            <option value="6">Bloque uniforme de texto (PSM 6)</option>
+                            <option value="1">Con detección de orientación OSD (PSM 1)</option>
+                            <option value="11">Texto disperso / Etiquetas (PSM 11)</option>
+                        </select>
+                        <span class="text-[11px] text-slate-500 block">Estructura esperada del texto.</span>
+                    </div>
+                </div>
+
+                <!-- Botón de Ejecución -->
+                <div class="flex justify-end pt-2">
+                    <button type="submit"
+                            id="btn-submit-ocr"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-dark text-slate-950 font-bold text-sm shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                        <span>Extraer Texto</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Área de Resultados OCR -->
+            <div id="ocr-result-area" class="mt-8 transition-all"></div>
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- PESTAÑA 5: CONVERTIDOR DE IMÁGENES (FFMPEG)                             -->
+    <!-- ======================================================================= -->
+    <div id="panel-converter" class="tab-panel space-y-8 hidden">
+        <div class="bg-darkcard border border-darkborder rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="max-w-2xl">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand">Herramienta Imágenes 2</span>
+                <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Convertidor de Imágenes con FFmpeg</h2>
+                <p class="text-sm text-slate-400 mt-1">
+                    Convierte imágenes instantáneamente a formatos web de alta compresión y calidad (WebP, JPG, PNG, AVIF, ICO, GIF, BMP) procesadas en RAM mediante tuberías FFmpeg. Cero escritura en disco.
+                </p>
+            </div>
+
+            <!-- Upload and Converter Form -->
+            <form id="converter-form"
+                  hx-post="{% url 'images:convert_image' %}"
+                  hx-target="#converter-result-area"
+                  hx-indicator="#converter-spinner"
+                  enctype="multipart/form-data"
+                  class="mt-6 space-y-6">
+
+                <!-- Drag & Drop Zone -->
+                <div id="converter-dropzone"
+                     class="border-2 border-dashed border-darkborder hover:border-brand/60 transition-colors rounded-xl p-8 text-center bg-darkbg/50 cursor-pointer relative group"
+                     onclick="document.getElementById('converter_image_file').click()">
+
+                    <input type="file"
+                           id="converter_image_file"
+                           name="image"
+                           accept="image/*"
+                           class="hidden"
+                           onchange="handleConverterFileSelect(this)">
+
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-darkcard2 border border-darkborder flex items-center justify-center text-brand group-hover:scale-110 group-hover:border-brand/40 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-200">
+                                Haz clic para seleccionar o arrastra la imagen a convertir
+                            </p>
+                            <p id="converter-selected-filename" class="text-xs text-slate-400 mt-1">
+                                Formatos de entrada: PNG, JPG, JPEG, WEBP, AVIF, BMP, GIF, TIFF
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Spinner -->
+                    <div id="converter-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                        <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-brand">Convirtiendo imagen con FFmpeg en memoria...</span>
+                    </div>
+                </div>
+
+                <!-- Opciones de Conversión -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    
+                    <!-- Formato Destino -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-2">
+                        <label for="target_format" class="block text-xs font-semibold text-slate-300">
+                            Formato de Salida
+                        </label>
+                        <select id="target_format"
+                                name="target_format"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand rounded-lg px-3 py-2 text-xs text-white cursor-pointer font-medium">
+                            <option value="webp" selected>WebP (Recomendado para Web)</option>
+                            <option value="jpg">JPEG / JPG (Universal)</option>
+                            <option value="png">PNG (Transparencia / Sin pérdida)</option>
+                            <option value="avif">AVIF (Máxima compresión moderna)</option>
+                            <option value="ico">ICO (Favicon multi-resolución)</option>
+                            <option value="gif">GIF</option>
+                            <option value="bmp">BMP (Bitmap sin comprimir)</option>
+                        </select>
+                        <span class="text-[11px] text-slate-500 block">Genera el archivo optimizado según el destino.</span>
+                    </div>
+
+                    <!-- Calidad / Compresión -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="quality" class="text-xs font-semibold text-slate-300">
+                                Calidad / Compresión
+                            </label>
+                            <span id="quality-val" class="text-xs font-mono font-bold text-brand">85%</span>
+                        </div>
+                        <input type="range"
+                               id="quality"
+                               name="quality"
+                               min="10"
+                               max="100"
+                               value="85"
+                               step="5"
+                               class="w-full h-1.5 bg-darkbg rounded-lg appearance-none cursor-pointer accent-brand"
+                               oninput="document.getElementById('quality-val').innerText = this.value + '%'">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>10% (Máx. compresión)</span>
+                            <span>85% (Equilibrado)</span>
+                            <span>100% (Máx. calidad)</span>
+                        </div>
+                    </div>
+
+                    <!-- Resolución Máxima / Redimensionar -->
+                    <div class="bg-darkcard2/40 border border-darkborder rounded-xl p-4 space-y-2">
+                        <label for="max_dim" class="block text-xs font-semibold text-slate-300">
+                            Escalado / Dimensión Máxima
+                        </label>
+                        <select id="max_dim"
+                                name="max_dim"
+                                class="w-full bg-darkbg border border-darkborder focus:border-brand rounded-lg px-3 py-2 text-xs text-white cursor-pointer">
+                            <option value="original" selected>Original (Sin redimensionar)</option>
+                            <option value="1920">1920 px (Full HD)</option>
+                            <option value="1280">1280 px (HD / Web estándar)</option>
+                            <option value="800">800 px (Artículos / Blog)</option>
+                            <option value="500">500 px (Miniaturas / Tienda)</option>
+                            <option value="256">256 px (Íconos / Avatares)</option>
+                        </select>
+                        <span class="text-[11px] text-slate-500 block">Escala proporcionalmente sin distorsionar.</span>
+                    </div>
+
+                </div>
+
+                <!-- Opciones adicionales -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                    <label class="inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox"
+                               name="strip_metadata"
+                               checked
+                               class="h-4 w-4 rounded text-brand border-darkborder focus:ring-brand bg-darkbg">
+                        <span class="ml-2.5 text-xs text-slate-300">
+                            Eliminar metadatos EXIF / Privacidad (Reduce el peso del archivo)
+                        </span>
+                    </label>
+
+                    <button type="submit"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-dark text-slate-950 font-bold text-sm shadow-lg shadow-brand/20 transition-all flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Convertir Imagen</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Área de Resultados del Convertidor -->
+            <div id="converter-result-area" class="mt-8 transition-all"></div>
+        </div>
+    </div>
+
 </div>
+
+<!-- Scripts de interacción para imágenes (Drag & Drop y Pegado Ctrl+V) -->
+<script>
+    function handleOcrFileSelect(input) {
+        if (input.files && input.files[0]) {
+            document.getElementById('ocr-selected-filename').innerText = input.files[0].name;
+            htmx.trigger('#ocr-form', 'submit');
+        }
+    }
+
+    function handleConverterFileSelect(input) {
+        if (input.files && input.files[0]) {
+            document.getElementById('converter-selected-filename').innerText = input.files[0].name;
+            htmx.trigger('#converter-form', 'submit');
+        }
+    }
+
+    // Soporte para pegar imágenes desde el portapapeles (Ctrl + V) en la pestaña OCR
+    window.addEventListener('paste', function(e) {
+        // Solo actuar si la pestaña activa es OCR
+        const ocrPanel = document.getElementById('panel-ocr');
+        if (!ocrPanel || ocrPanel.classList.contains('hidden')) return;
+
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let index in items) {
+            const item = items[index];
+            if (item.kind === 'file' && item.type.startsWith('image/')) {
+                const blob = item.getAsFile();
+                const fileInput = document.getElementById('ocr_image_file');
+                const dataTransfer = new DataTransfer();
+                const file = new File([blob], 'captura_portapapeles.png', { type: item.type });
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                document.getElementById('ocr-selected-filename').innerText = 'captura_portapapeles.png (Desde portapapeles)';
+                htmx.trigger('#ocr-form', 'submit');
+                break;
+            }
+        }
+    });
+</script>
 {% endblock %}

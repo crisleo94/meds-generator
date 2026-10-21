@@ -15,6 +15,10 @@ WORKDIR /app
 # Instalar dependencias del sistema mínimas requeridas
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    tesseract-ocr \
+    tesseract-ocr-spa \
+    tesseract-ocr-eng \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de dependencias e instalar con uv sync
