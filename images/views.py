@@ -37,13 +37,16 @@ def ocr_extract(request):
             psm=psm
         )
 
+        lines = [line.strip() for line in ocr_data['text'].splitlines() if line.strip()]
+
         context = {
             'filename': image_file.name,
             'filesize_kb': round(len(image_bytes) / 1024, 1),
             'text': ocr_data['text'],
+            'lines': lines,
             'char_count': ocr_data['char_count'],
             'word_count': ocr_data['word_count'],
-            'line_count': ocr_data['line_count'],
+            'line_count': len(lines),
             'lang': ocr_data['lang'],
             'preprocess_mode': ocr_data['preprocess_mode'],
         }

@@ -241,16 +241,32 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-slate-200">
-                                Haz clic para seleccionar, arrastra una imagen o presiona <kbd class="px-1.5 py-0.5 rounded bg-darkcard2 border border-darkborder text-xs text-brand font-mono">Ctrl + V</kbd>
+                                Haz clic para seleccionar archivo o arrastra una imagen aquí
                             </p>
                             <p id="ocr-selected-filename" class="text-xs text-slate-400 mt-1">
                                 Formatos soportados: PNG, JPG, JPEG, WEBP, BMP, TIFF
                             </p>
                         </div>
+
+                        <!-- Botón interactivo para Pegar del Portapapeles -->
+                        <div class="pt-1 z-10" onclick="event.stopPropagation()">
+                            <button type="button"
+                                    onclick="pasteImageFromClipboard('ocr')"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-darkcard2 hover:bg-darkborder border border-brand/40 hover:border-brand text-brand hover:text-white text-xs font-semibold shadow-lg shadow-brand/5 hover:scale-105 active:scale-95 transition-all">
+                                <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <span>Pegar imagen copiada</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-darkbg border border-darkborder text-[10px] text-slate-400 font-mono">Ctrl + V</kbd>
+                            </button>
+                        </div>
+
+                        <!-- Miniatura de previsualización al pegar -->
+                        <div id="ocr-pasted-preview"></div>
                     </div>
 
                     <!-- Spinner -->
-                    <div id="ocr-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                    <div id="ocr-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm z-20">
                         <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -368,16 +384,32 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-slate-200">
-                                Haz clic para seleccionar o arrastra la imagen a convertir
+                                Haz clic para seleccionar archivo o arrastra la imagen a convertir
                             </p>
                             <p id="converter-selected-filename" class="text-xs text-slate-400 mt-1">
                                 Formatos de entrada: PNG, JPG, JPEG, WEBP, AVIF, BMP, GIF, TIFF
                             </p>
                         </div>
+
+                        <!-- Botón interactivo para Pegar del Portapapeles -->
+                        <div class="pt-1 z-10" onclick="event.stopPropagation()">
+                            <button type="button"
+                                    onclick="pasteImageFromClipboard('converter')"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-darkcard2 hover:bg-darkborder border border-brand/40 hover:border-brand text-brand hover:text-white text-xs font-semibold shadow-lg shadow-brand/5 hover:scale-105 active:scale-95 transition-all">
+                                <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <span>Pegar imagen copiada</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-darkbg border border-darkborder text-[10px] text-slate-400 font-mono">Ctrl + V</kbd>
+                            </button>
+                        </div>
+
+                        <!-- Miniatura de previsualización al pegar -->
+                        <div id="converter-pasted-preview"></div>
                     </div>
 
                     <!-- Spinner -->
-                    <div id="converter-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm">
+                    <div id="converter-spinner" class="htmx-indicator absolute inset-0 bg-darkbg/90 rounded-xl flex items-center justify-center space-x-3 backdrop-blur-sm z-20">
                         <svg class="animate-spin h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -485,39 +517,146 @@
 <script>
     function handleOcrFileSelect(input) {
         if (input.files && input.files[0]) {
-            document.getElementById('ocr-selected-filename').innerText = input.files[0].name;
-            htmx.trigger('#ocr-form', 'submit');
+            const file = input.files[0];
+            document.getElementById('ocr-selected-filename').innerText = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+            showPastedThumb(file, 'ocr-pasted-preview');
+            const form = document.getElementById('ocr-form');
+            if (form) form.requestSubmit();
         }
     }
 
     function handleConverterFileSelect(input) {
         if (input.files && input.files[0]) {
-            document.getElementById('converter-selected-filename').innerText = input.files[0].name;
-            htmx.trigger('#converter-form', 'submit');
+            const file = input.files[0];
+            document.getElementById('converter-selected-filename').innerText = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+            showPastedThumb(file, 'converter-pasted-preview');
+            const form = document.getElementById('converter-form');
+            if (form) form.requestSubmit();
         }
     }
 
-    // Soporte para pegar imágenes desde el portapapeles (Ctrl + V) en la pestaña OCR
-    window.addEventListener('paste', function(e) {
-        // Solo actuar si la pestaña activa es OCR
-        const ocrPanel = document.getElementById('panel-ocr');
-        if (!ocrPanel || ocrPanel.classList.contains('hidden')) return;
+    // Pegar imagen directamente desde el portapapeles mediante botón
+    async function pasteImageFromClipboard(targetTool) {
+        const isOcr = targetTool === 'ocr';
+        const fileInputId = isOcr ? 'ocr_image_file' : 'converter_image_file';
+        const formId = isOcr ? 'ocr-form' : 'converter-form';
+        const labelId = isOcr ? 'ocr-selected-filename' : 'converter-selected-filename';
+        const previewId = isOcr ? 'ocr-pasted-preview' : 'converter-pasted-preview';
 
-        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-        for (let index in items) {
-            const item = items[index];
-            if (item.kind === 'file' && item.type.startsWith('image/')) {
-                const blob = item.getAsFile();
-                const fileInput = document.getElementById('ocr_image_file');
-                const dataTransfer = new DataTransfer();
-                const file = new File([blob], 'captura_portapapeles.png', { type: item.type });
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                document.getElementById('ocr-selected-filename').innerText = 'captura_portapapeles.png (Desde portapapeles)';
-                htmx.trigger('#ocr-form', 'submit');
-                break;
+        try {
+            if (!navigator.clipboard || !navigator.clipboard.read) {
+                alert('Para pegar, haz clic dentro del recuadro punteado y presiona Ctrl + V.');
+                return;
+            }
+            const clipboardItems = await navigator.clipboard.read();
+            for (const item of clipboardItems) {
+                const imageType = item.types.find(type => type.startsWith('image/'));
+                if (imageType) {
+                    const blob = await item.getType(imageType);
+                    const ext = imageType.split('/')[1] || 'png';
+                    const file = new File([blob], `captura_portapapeles.${ext}`, { type: imageType });
+
+                    const fileInput = document.getElementById(fileInputId);
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileInput.files = dt.files;
+
+                    const label = document.getElementById(labelId);
+                    if (label) {
+                        label.innerText = `Imagen pegada: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+                    }
+
+                    showPastedThumb(file, previewId);
+
+                    const form = document.getElementById(formId);
+                    if (form) form.requestSubmit();
+                    return;
+                }
+            }
+            alert('No se encontró ninguna imagen en el portapapeles. Copia una imagen primero (por ejemplo con Win + Shift + S o clic derecho Copiar Imagen).');
+        } catch (err) {
+            console.warn('Error leyendo portapapeles con API directa:', err);
+            alert('Para pegar imágenes en este navegador, haz clic dentro del área y presiona Ctrl + V.');
+        }
+    }
+
+    // Soporte global para pegar imágenes con Ctrl + V
+    window.addEventListener('paste', function(e) {
+        const ocrPanel = document.getElementById('panel-ocr');
+        const convPanel = document.getElementById('panel-converter');
+
+        let targetTool = null;
+        if (ocrPanel && !ocrPanel.classList.contains('hidden')) {
+            targetTool = 'ocr';
+        } else if (convPanel && !convPanel.classList.contains('hidden')) {
+            targetTool = 'converter';
+        }
+
+        if (!targetTool) return;
+
+        const clipboardFiles = e.clipboardData ? e.clipboardData.files : [];
+        let imageFile = null;
+
+        if (clipboardFiles && clipboardFiles.length > 0) {
+            for (let i = 0; i < clipboardFiles.length; i++) {
+                if (clipboardFiles[i].type.startsWith('image/')) {
+                    imageFile = clipboardFiles[i];
+                    break;
+                }
             }
         }
+
+        if (!imageFile && e.clipboardData && e.clipboardData.items) {
+            for (let i = 0; i < e.clipboardData.items.length; i++) {
+                const item = e.clipboardData.items[i];
+                if (item.type.startsWith('image/')) {
+                    imageFile = item.getAsFile();
+                    break;
+                }
+            }
+        }
+
+        if (imageFile) {
+            e.preventDefault();
+            const isOcr = targetTool === 'ocr';
+            const fileInputId = isOcr ? 'ocr_image_file' : 'converter_image_file';
+            const formId = isOcr ? 'ocr-form' : 'converter-form';
+            const labelId = isOcr ? 'ocr-selected-filename' : 'converter-selected-filename';
+            const previewId = isOcr ? 'ocr-pasted-preview' : 'converter-pasted-preview';
+
+            const fileInput = document.getElementById(fileInputId);
+            const dt = new DataTransfer();
+            dt.items.add(imageFile);
+            fileInput.files = dt.files;
+
+            const label = document.getElementById(labelId);
+            if (label) {
+                label.innerText = `Imagen pegada: ${imageFile.name} (${Math.round(imageFile.size / 1024)} KB)`;
+            }
+
+            showPastedThumb(imageFile, previewId);
+
+            const form = document.getElementById(formId);
+            if (form) form.requestSubmit();
+        }
     });
+
+    function showPastedThumb(blob, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const url = URL.createObjectURL(blob);
+        container.innerHTML = `
+            <div class="inline-flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-darkcard2 border border-brand/40 shadow-lg mt-1 animate-fadeIn">
+                <img src="${url}" class="w-10 h-10 object-cover rounded-lg border border-darkborder shrink-0" alt="Thumb" />
+                <div class="text-left leading-tight">
+                    <span class="text-xs text-brand font-bold block flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Imagen cargada
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-mono">${Math.round(blob.size / 1024)} KB</span>
+                </div>
+            </div>
+        `;
+    }
 </script>
 {% endblock %}
